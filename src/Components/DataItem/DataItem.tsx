@@ -12,19 +12,21 @@ const DataItem = ({ data, onDelete }: Props) => {
   const { id, title, date, time } = data;
 
   return (
-    <Container>
+    <Container to={`/detail/${id}`}>
       <div className='date_wrap'>
         <span>{date}</span>
         <span>{time}</span>
       </div>
-      <Link to={`/detail/${id}`}>
-        <h4>{title}</h4>
-      </Link>
+      <h4>{title}</h4>
       <img
         src='images/icons/delete/delete.svg'
         alt='delete'
         className='delete'
-        onClick={() => onDelete(id)}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onDelete(id);
+        }}
       />
     </Container>
   );
@@ -32,7 +34,7 @@ const DataItem = ({ data, onDelete }: Props) => {
 
 export default DataItem;
 
-const Container = styled.div`
+const Container = styled(Link)`
   width: 100%;
   height: 70px;
 
