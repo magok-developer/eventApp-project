@@ -5,58 +5,73 @@ import Button from "../Components/Button/Button";
 import Input from "../Components/Input/Input";
 import Textarea from "../Components/Textarea/Textarea";
 import Calendar from "../Components/Calendar/Calendar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { formatDate } from "../util";
+import { getDataDetail, putData } from "../api";
 
 type Props = {
-  data: DataType[];
-  setData: (data: DataType[]) => void;
-  putData: (id: string) => void;
-  inputValue: { title: string; location: string };
-  setInputValue: React.Dispatch<
-    React.SetStateAction<{ title: string; location: string }>
-  >;
-  textareaValue: string;
-  setTextareaValue: React.Dispatch<React.SetStateAction<string>>;
-  selectedDate: Date | null;
-  setSelectedDate: React.Dispatch<React.SetStateAction<Date | null>>;
+  refetch: () => void;
 };
 
-const Edit = ({
-  data,
-  setData,
-  putData,
-  inputValue,
-  setInputValue,
-  textareaValue,
-  setTextareaValue,
-  selectedDate,
-  setSelectedDate,
-}: Props) => {
+const Edit = ({ refetch }: Props) => {
   const { id } = useParams<{ id: string }>();
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [inputs, setInputs] = useState({
+    title: "",
+    location: "",
+    content: "",
+  });
+  const [data, setData] = useState<DataType>();
+
   const navigate = useNavigate();
-  const card = data.find((item) => Number(item.id) === Number(id));
+
+  const getEvent = async () => {
+    const response = await getDataDetail(Number(id));
+
+    setData(response);
+  };
 
   useEffect(() => {
-    if (card) {
-      setInputValue({ title: card.title, location: card.location });
-      setTextareaValue(card.content);
-      setSelectedDate(card.date ? new Date(card.date) : null);
+    getEvent();
+  }, []);
+
+  useEffect(() => {
+    if (data) {
+      setInputs({
+        title: data.title,
+        location: data.location,
+        content: data.content,
+      });
     }
-  }, [card, setInputValue, setTextareaValue, setSelectedDate]);
+  }, [data]);
+
+  const handleClickEdit = async (id: number) => {
+    const formattedDate = formatDate(selectedDate);
+
+    const item: DataType = {
+      id: id,
+      title: inputs.title,
+      date: formattedDate.date,
+      time: formattedDate.time,
+      location: inputs.location,
+      content: inputs.content,
+    };
+
+    await putData(id, item);
+    await refetch();
+
+    navigate("/");
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setInputValue((prev) => ({
+    setInputs((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setTextareaValue(e.target.value);
-  };
-
-  const handleDateChange = (date: Date | null) => {
+  const handleDateChange = (date: Date) => {
     setSelectedDate(date);
   };
 
@@ -68,7 +83,7 @@ const Edit = ({
     <Container>
       <Input
         name='title'
-        value={inputValue.title}
+        value={inputs.title}
         onChange={handleInputChange}
         placeholder='제목을 작성해주세요.'
         style={{ width: "100%", height: "50px" }}
@@ -76,7 +91,7 @@ const Edit = ({
       <div className='wrap'>
         <Calendar
           selectedDate={selectedDate}
-          onDateChange={handleDateChange}
+          onDateChange={(e) => handleDateChange(e ? e : new Date())}
           showTimeSelect={true}
           dateFormat='yyyy-MM-dd HH:mm'
           placeholderText='날짜와 시간을 선택해주세요.'
@@ -85,18 +100,22 @@ const Edit = ({
         />
         <Input
           name='location'
-          value={inputValue.location}
+          value={inputs.location}
           onChange={handleInputChange}
           placeholder='위치를 작성해주세요.'
           style={{ width: "300px" }}
         />
       </div>
-      <Textarea value={textareaValue} onChange={handleTextareaChange} />
+      <Textarea
+        value={inputs.content}
+        name='content'
+        onChange={handleInputChange}
+      />
       <div className='button-wrap'>
         <Button color='back' onClick={handlePreviousClick}>
           이전
         </Button>
-        <Button color='done' onClick={() => id && putData(id)}>
+        <Button color='done' onClick={() => handleClickEdit(Number(id))}>
           등록
         </Button>
       </div>
