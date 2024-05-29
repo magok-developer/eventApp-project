@@ -4,25 +4,21 @@ import Header from "../Components/Header/Header";
 import styled from "styled-components";
 import { color } from "../styles/color";
 import DataList from "../Components/DataList/DataList";
+import Pagination from "../Components/Pagination/Pagination";
+import { deleteData } from "../api";
 
 type Props = {
   data: DataType[];
-  setData: (data: DataType[]) => void;
   filteredData: DataType[];
   setFilteredData: (data: DataType[]) => void;
-  onDelete: (id: string) => void;
+  refetch: () => void;
 };
 
-const Home = ({
-  data,
-  setData,
-  filteredData,
-  setFilteredData,
-  onDelete,
-}: Props) => {
+const Home = ({ data, filteredData, setFilteredData, refetch }: Props) => {
   const [sortAscending, setSortAscending] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [search, setSearch] = useState("");
+  const [pagination, setPagination] = useState(1);
 
   const handleSort = () => {
     const sortedData = [...filteredData].sort((a, b) => {
@@ -58,9 +54,29 @@ const Home = ({
     setFilteredData(filteredData);
   };
 
+  const handleClickDelete = async (id: number) => {
+    const confirmDelete = window.confirm("정말로 삭제하시겠습니까?");
+
+    if (confirmDelete) {
+      try {
+        await deleteData(id);
+        refetch();
+      } catch (error) {
+        console.error("Error", error);
+      }
+    }
+  };
+
+  const perPage = 5;
+  const currentData = filteredData.slice(
+    (pagination - 1) * perPage,
+    pagination * perPage
+  );
+  const totalPages = Math.ceil(filteredData.length / perPage);
+
   return (
-    <>
-      <div className='wrap'>
+    <Container>
+      <div className='wrapper'>
         <Header
           sortAscending={sortAscending}
           handleSort={handleSort}
@@ -73,29 +89,53 @@ const Home = ({
         {filteredData.length === 0 ? (
           <NoneData>데이터가 없습니다.</NoneData>
         ) : (
-          <DataList data={filteredData} onDelete={onDelete} />
+          <DataList data={currentData} onDelete={handleClickDelete} />
         )}
 
-        <div style={{ display: "flex", alignItems: "end", flex: 1 }}>
-          {/* 임시 스타일 */}
-          페이지네이션
-        </div>
+        {filteredData.length === 0 ? (
+          <></>
+        ) : (
+          <div className='pagination-wrap'>
+            <Pagination
+              currentPage={pagination}
+              totalPages={totalPages}
+              onPageChange={(e) => setPagination(e)}
+            />
+          </div>
+        )}
       </div>
-    </>
+    </Container>
   );
 };
 
 export default Home;
 
+const Container = styled.div`
+  height: 100%;
+  .wrapper {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .pagination-wrap {
+    position: sticky;
+    bottom: 100px;
+  }
+`;
+
 const NoneData = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 423.99px;
+  height: 100%;
 
   background-color: ${color.skyBlue};
   padding: 16px;
   box-sizing: border-box;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
+  margin: 0 30px 30px 30px;
+  font-weight: bold;
 `;
