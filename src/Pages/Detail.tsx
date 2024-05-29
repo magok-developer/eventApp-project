@@ -1,32 +1,37 @@
 import { useParams, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { DataType } from "../model/types";
 import Button from "../Components/Button/Button";
 import { color } from "../styles/color";
-import axios from "axios";
+import { useEffect, useState } from "react";
+import { DataType } from "../model/types";
+import { deleteData, getDataDetail } from "../api";
 
-type Props = {
-  data: DataType[];
-  setData: (data: DataType[]) => void;
-};
-
-const Detail = ({ data, setData }: Props) => {
+const Detail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const card = data.find((item) => Number(item.id) === Number(id));
+  const [data, setData] = useState<DataType>();
 
-  if (!card) {
+  const getEvent = async () => {
+    const response = await getDataDetail(Number(id));
+
+    setData(response);
+  };
+
+  useEffect(() => {
+    getEvent();
+  }, []);
+
+  if (!data) {
     return <div>해당 데이터를 찾을 수 없습니다.</div>;
   }
 
-  const handleClickDelete = async (id: number | string) => {
+  const handleClickDelete = async (id: number) => {
     const confirmDelete = window.confirm("정말로 삭제하시겠습니까?");
 
     if (confirmDelete) {
       try {
-        await axios.delete(`http://localhost:3001/data/${id}`);
-        const newData = data.filter((item) => item.id !== id);
-        setData(newData);
+        await deleteData(id);
+
         navigate(-1);
       } catch (error) {
         console.error("Error", error);
@@ -36,22 +41,25 @@ const Detail = ({ data, setData }: Props) => {
 
   return (
     <Container>
-      <h2>{card.title}</h2>
+      <h2>{data.title}</h2>
       <div className='info-wrap'>
         <p>
-          {card.date} {card.time}
+          {data.date} {data.time}
         </p>
-        <p>{card.location}</p>
+        <div className='location'>
+          <img src='/images/icons/location/location.svg' width={20} />
+          {data.location}
+        </div>
       </div>
-      <div className='content'>{card.content}</div>
+      <div className='content'>{data.content}</div>
       <div className='button-wrap'>
         <Button color='back' onClick={() => navigate(-1)}>
           이전
         </Button>
-        <Button color='done' onClick={() => navigate(`/edit/${card.id}`)}>
+        <Button color='done' onClick={() => navigate(`/edit/${data.id}`)}>
           수정
         </Button>
-        <Button color='delete' onClick={() => handleClickDelete(card.id)}>
+        <Button color='delete' onClick={() => handleClickDelete(data.id)}>
           삭제
         </Button>
       </div>
@@ -84,6 +92,12 @@ const Container = styled.div`
     border: 1.5px solid ${color.deepBlue};
 
     box-sizing: border-box;
+  }
+
+  .location {
+    display: flex;
+    align-items: center;
+    gap: 4px;
   }
   .content {
     width: 100%;
