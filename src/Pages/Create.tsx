@@ -1,60 +1,71 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import Input from "../Components/Input/Input";
 import Calendar from "../Components/Calendar/Calendar";
 import Textarea from "../Components/Textarea/Textarea";
 import Button from "../Components/Button/Button";
 import { useNavigate } from "react-router-dom";
+import { DataType } from "../model/types";
+import { formatDate } from "../util";
+import { postData } from "../api";
 
 type Props = {
-  onCreate: () => void;
-  inputValue: { title: string; location: string };
-  setInputValue: React.Dispatch<
-    React.SetStateAction<{ title: string; location: string }>
-  >;
-  textareaValue: string;
-  setTextareaValue: React.Dispatch<React.SetStateAction<string>>;
-  selectedDate: Date | null;
-  setSelectedDate: React.Dispatch<React.SetStateAction<Date | null>>;
+  id: number;
+  refetch: () => void;
 };
 
-const Create = ({
-  onCreate,
-  inputValue,
-  setInputValue,
-  textareaValue,
-  setTextareaValue,
-  selectedDate,
-  setSelectedDate,
-}: Props) => {
+const Create = ({ id, refetch }: Props) => {
   const navigate = useNavigate();
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [inputs, setInputs] = useState({
+    title: "",
+    location: "",
+    content: "",
+  });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setInputValue((prev) => ({
+    setInputs((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setTextareaValue(e.target.value);
-  };
-
   const handleDateChange = (date: Date | null) => {
-    setSelectedDate(date);
+    setSelectedDate(selectedDate);
   };
 
   const handlePreviousClick = () => {
     navigate(-1);
   };
 
+  const handleClickPost = async () => {
+    const formattedDate = formatDate(selectedDate);
+
+    const item: DataType = {
+      id: id,
+      title: inputs.title,
+      date: formattedDate.date,
+      time: formattedDate.time,
+      location: inputs.location,
+      content: inputs.content,
+    };
+
+    try {
+      await postData(item);
+      await refetch();
+      navigate("/");
+    } catch (error) {
+      console.error("Error", error);
+    }
+  };
+
   return (
     <Container>
       <Input
         name='title'
-        value={inputValue.title}
-        onChange={handleInputChange}
+        value={inputs.title}
+        onChange={handleChangeInput}
         placeholder='제목을 작성해주세요.'
         style={{ width: "100%", height: "50px" }}
       />
@@ -70,18 +81,22 @@ const Create = ({
         />
         <Input
           name='location'
-          value={inputValue.location}
-          onChange={handleInputChange}
+          value={inputs.location}
+          onChange={handleChangeInput}
           placeholder='위치를 작성해주세요.'
           style={{ width: "300px" }}
         />
       </div>
-      <Textarea value={textareaValue} onChange={handleTextareaChange} />
+      <Textarea
+        value={inputs.content}
+        name='content'
+        onChange={handleChangeInput}
+      />
       <div className='button-wrap'>
         <Button color='back' onClick={handlePreviousClick}>
           이전
         </Button>
-        <Button color='done' onClick={onCreate}>
+        <Button color='done' onClick={handleClickPost}>
           등록
         </Button>
       </div>
