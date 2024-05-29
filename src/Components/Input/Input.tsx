@@ -66,6 +66,7 @@ const InputStyle = styled.input<any>`
   box-sizing: border-box;
   border: 1.5px solid ${color.deepBlue};
   border-radius: 6px;
-  font-size: 16px;
+  font-size: 14px;
   outline: none;
+  padding-right: 30px;
 `;
