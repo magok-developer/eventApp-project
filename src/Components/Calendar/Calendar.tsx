@@ -38,6 +38,7 @@ const Calendar = ({
 
   return (
     <Container style={style}>
+      <img src='/images/icons/calendar/calendar.svg' width={14} />
       <StyledDatePicker
         selected={selectedDate}
         onChange={handleChange}
@@ -54,6 +55,17 @@ const Calendar = ({
 export default Calendar;
 
 const Container = styled.div`
+  width: 100%;
+  height: 30px;
+  border: 1.5px solid ${color.deepBlue};
+  background-color: ${color.skyBlue};
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 4px 0 10px;
+  box-sizing: border-box;
+
   .react-datepicker-wrapper {
     display: flex;
   }
@@ -61,12 +73,10 @@ const Container = styled.div`
 
 const StyledDatePicker = styled(DatePicker)`
   width: 100%;
-  height: 30px;
-  padding: 10px;
-  border: 1.5px solid ${color.deepBlue};
-  background-color: ${color.skyBlue};
-  border-radius: 6px;
-  box-sizing: border-box;
+  border: none;
+  background: none;
+
   outline: none;
-  font-size: 16px;
+  font-size: 14px;
+  line-height: 20px;
 `;
