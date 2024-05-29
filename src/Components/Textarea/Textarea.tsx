@@ -5,10 +5,18 @@ type Props = {
   value: string;
   style?: React.CSSProperties;
   onChange: (e: any) => void;
+  name: string;
 };
 
-const Textarea = ({ value, style, onChange }: Props) => {
-  return <TextareaStyle value={value} style={style} onChange={onChange} />;
+const Textarea = ({ value, style, onChange, name }: Props) => {
+  return (
+    <TextareaStyle
+      value={value}
+      name={name}
+      style={style}
+      onChange={onChange}
+    />
+  );
 };
 
 export default Textarea;
