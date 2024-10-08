@@ -10,7 +10,7 @@ React + TypeScript로 구현하였으며, 디테일 데이터 조, 추가, 삭�
 - npm
 
 ### 프로젝트 클론
-```git clone https://github.com/magok-developer/tooltip-practice.git```
+```git clone https://github.com/magok-developer/eventApp-project.git```
 
 ### 의존성 설치
 - npm install
